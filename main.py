@@ -4,12 +4,28 @@ import pandas as pd
 import streamlit as st
 from fastapi import FastAPI
 
+# create app
 app = FastAPI()
 
+# Title
+st.markdown("# Welcome to the Loan Predictor")
 
-# @app.post('/pred')
-# def index(nombre: str):
-#     return nombre
+# information about app
+st.text('Please select here your personal information and i wil tell you if you are able \nto receive a loan.')
+
+# Information
+gender = st.selectbox('Gender', ('Select yout Gender', 'Male', 'Female'))
+married = st.selectbox('Married', ('Are you married?', 'Yes', 'No'))
+education = st.selectbox(
+    'Education', ('Select your education', 'Graduate', 'Not Graduate'))
+credit = st.selectbox(
+    'Credit History', ('Do you have credit history?', 'Yes', 'No'))
+credit = 1 if credit == 'Yes' else 0
+property_area = st.selectbox(
+    'Property Area', ('Select your property area', 'Urban', 'Rural', 'Semiurban'))
+
+
+# Create function to make predicts
 
 @app.post('/make_pred')
 def make_pred(gender: str, married: str, education: str, credit: int, property_area: str):
@@ -32,24 +48,25 @@ def make_pred(gender: str, married: str, education: str, credit: int, property_a
     # Build final df
 
     df.drop(['Gender', 'Education', 'Married',
-            'Property_Area'], axis=1, inplace=True)
+             'Property_Area'], axis=1, inplace=True)
 
     df2 = pd.concat([encoded_features, df], axis=1)
 
     pred = model.predict(df2)
 
-    return print(f'El resultado es: {pred[0]}')
+    return pred[0]
+
+# Button to make predicts
 
 
-# gender = 'Male'
-# married = 'Yes'
-# education = 'Graduate'
-# credit = 1
-# property_area = 'Urban'
-
-# url = f'http://127.0.0.1:8000/make_pred?gender={gender}&married={married}&education={education}&credit={credit}&property_area={property_area}'
-# url = url.replace(' ', '20')
-
-# resp = requests.post(url)
-
-# print(resp.content)
+if gender == 'Select yout Gender' or married == 'Are you married?' or education == 'Are you graduated?' or credit == 'Do you have credit history' or property_area == 'Property Area':
+    if st.button('Analyze'):
+        st.error('PLEASE, FILL IN ALL CELLS.')
+else:
+    if st.button('Analyze'):
+        resultado = make_pred(gender, married, education,
+                              credit, property_area)
+        if resultado == 0:
+            st.error(f'lOAN DENIED')
+        else:
+            st.success('GRANTED LOAN')
